@@ -1187,37 +1187,47 @@ macro(conan_check)
     endif()
 endmacro()
 
-function(conan_add_remote)
-    # Adds a remote
-    # Arguments URL and NAME are required, INDEX, COMMAND and VERIFY_SSL are optional
-    # Example usage:
-    #    conan_add_remote(NAME bincrafters INDEX 1
-    #       URL https://api.bintray.com/conan/bincrafters/public-conan
-    #       VERIFY_SSL True)
-    set(oneValueArgs URL NAME INDEX COMMAND VERIFY_SSL)
-    cmake_parse_arguments(CONAN "" "${oneValueArgs}" "" ${ARGN})
-
-    if(DEFINED CONAN_INDEX)
-        set(CONAN_INDEX_ARG "--index ${CONAN_INDEX}")
-    endif()
-    if(DEFINED CONAN_COMMAND)
-        set(CONAN_CMD ${CONAN_COMMAND})
-    else()
-        conan_check(REQUIRED DETECT_QUIET)
-    endif()
-    set(CONAN_VERIFY_SSL_ARG "True")
-    if(DEFINED CONAN_VERIFY_SSL)
-        set(CONAN_VERIFY_SSL_ARG ${CONAN_VERIFY_SSL})
-    endif()
-    message(STATUS "Conan: Adding ${CONAN_NAME} remote repository (${CONAN_URL}) verify ssl (${CONAN_VERIFY_SSL_ARG})")
-    message(STATUS "Conan: Executing: ${CONAN_CMD} remote add ${CONAN_INDEX_ARG} -f ${CONAN_NAME} ${CONAN_URL}")
-    execute_process(COMMAND ${CONAN_CMD} remote add  ${CONAN_INDEX_ARG} ${CONAN_NAME} ${CONAN_URL} RESULT_VARIABLE return_code)
+function(conan_add_remotes)
+    message(STATUS "Conan: Adding medicdeps remote repository")
+    execute_process(COMMAND conan remote add --index 1 medicdepsv2 https://artifactory.medicimaging.xlab.si/artifactory/api/conan/medicdeps_conanv2 RESULT_VARIABLE return_code ERROR_QUIET)
     if(NOT "${return_code}" STREQUAL "0")
-      execute_process(COMMAND ${CONAN_CMD} remote update ${CONAN_NAME} ${CONAN_INDEX_ARG} --url ${CONAN_URL} RESULT_VARIABLE return_code)
+      message(STATUS "Conan: medicdeps already exists. Updating its index...")
+      execute_process(COMMAND conan remote update medicdepsv2 --index 1 --url https://artifactory.medicimaging.xlab.si/artifactory/api/conan/medicdeps_conanv2 RESULT_VARIABLE return_code ERROR_QUIET)
       if(NOT "${return_code}" STREQUAL "0")
         message(FATAL_ERROR "Conan remote update failed='${return_code}'.")
       endif()
     endif()
+
+    message(STATUS "Conan: Adding conancenter remote repository")
+    execute_process(COMMAND conan remote add --index 3 conancenter https://center.conan.io RESULT_VARIABLE return_code ERROR_QUIET)
+    if(NOT "${return_code}" STREQUAL "0")
+      message(STATUS "Conan: conancenter already exists. Updating its index...")
+      execute_process(COMMAND conan remote update conancenter --index 3 --url https://center.conan.io RESULT_VARIABLE return_code ERROR_QUIET)
+      if(NOT "${return_code}" STREQUAL "0")
+        message(FATAL_ERROR "Conan remote update failed='${return_code}'.")
+      endif()
+    endif()
+
+    message(STATUS "Conan: Adding xlabinternal remote repository")
+    execute_process(COMMAND conan remote add --index 2 xlabinternal https://artifactory.medicimaging.xlab.si/artifactory/api/conan/xlab_internal RESULT_VARIABLE return_code ERROR_QUIET)
+    if(NOT "${return_code}" STREQUAL "0")
+      message(STATUS "Conan: conancenter already exists. Updating its index...")
+      execute_process(COMMAND conan remote update xlabinternal --index 2 --url https://artifactory.medicimaging.xlab.si/artifactory/api/conan/xlab_internal RESULT_VARIABLE return_code ERROR_QUIET)
+      if(NOT "${return_code}" STREQUAL "0")
+        message(FATAL_ERROR "Conan remote update failed='${return_code}'.")
+      endif()
+    endif()
+
+    if(DEFINED ENV{XLAB_INTERNAL_CONAN_USER} AND DEFINED ENV{XLAB_INTERNAL_CONAN_PASSWORD})
+        message(STATUS "Conan: Logging to conan remote xlabinternal with user $ENV{XLAB_INTERNAL_CONAN_USER}...")
+
+        execute_process(COMMAND conan remote login xlabinternal $ENV{XLAB_INTERNAL_CONAN_USER} -p $ENV{XLAB_INTERNAL_CONAN_PASSWORD}
+                    RESULT_VARIABLE return_code)                                
+        if(NOT "${return_code}" STREQUAL "0")                                       
+            message(FATAL_ERROR "Conan remote login failed with code '${return_code}'")         
+        endif()       
+    endif()
+
 endfunction()
 
 macro(conan_config_install)
