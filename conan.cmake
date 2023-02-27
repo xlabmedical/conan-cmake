@@ -1219,9 +1219,9 @@ function(conan_add_remotes)
     endif()
 
     if(DEFINED ENV{XLAB_INTERNAL_CONAN_USER} AND DEFINED ENV{XLAB_INTERNAL_CONAN_PASSWORD})
-        message(STATUS "Conan: Logging to conan remote xlabinternal with user $ENV{XLAB_INTERNAL_CONAN_USER}...")
+        message(STATUS "Conan: Logging to conan remote xlabinternalv2 with user $ENV{XLAB_INTERNAL_CONAN_USER}...")
 
-        execute_process(COMMAND conan remote login xlabinternal $ENV{XLAB_INTERNAL_CONAN_USER} -p $ENV{XLAB_INTERNAL_CONAN_PASSWORD}
+        execute_process(COMMAND conan remote login xlabinternalv2 $ENV{XLAB_INTERNAL_CONAN_USER} -p $ENV{XLAB_INTERNAL_CONAN_PASSWORD}
                     RESULT_VARIABLE return_code)                                
         if(NOT "${return_code}" STREQUAL "0")                                       
             message(FATAL_ERROR "Conan remote login failed with code '${return_code}'")         
