@@ -112,38 +112,12 @@ endfunction()
 
 
 # Detect 'compiler.version' setting for 'msvc'.
-function(_conan_detect_msvc_version result)
-    set(${result} "" PARENT_SCOPE)
-    if(NOT MSVC_VERSION VERSION_LESS 1400 AND MSVC_VERSION VERSION_LESS 1500)
-        # VS2005
-        set(${result} 140 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1500 AND MSVC_VERSION VERSION_LESS 1600)
-        # VS2008
-        set(${result} 150 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1600 AND MSVC_VERSION VERSION_LESS 1700)
-        # VS2010
-        set(${result} 160 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1700 AND MSVC_VERSION VERSION_LESS 1800)
-        # VS2012
-        set(${result} 170 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1800 AND MSVC_VERSION VERSION_LESS 1900)
-        # VS2013
-        set(${result} 180 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1900 AND MSVC_VERSION VERSION_LESS 1910)
-        # VS2015
-        set(${result} 190 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1910 AND MSVC_VERSION VERSION_LESS 1920)
-        # VS2017
-        set(${result} 191 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1920 AND MSVC_VERSION VERSION_LESS 1930)
-        # VS2019
-        set(${result} 192 PARENT_SCOPE)
-    elseif(NOT MSVC_VERSION VERSION_LESS 1930 AND MSVC_VERSION VERSION_LESS 1940)
-        # VS2022
-        set(${result} 193 PARENT_SCOPE)
-    else()
-        message(FATAL_ERROR "Conan: Unknown MSVC compiler version [${MSVC_VERSION}]")
-    endif()
+function(_conan_detect_msvc_version result_major result_minor)
+    string(REGEX MATCH "..." MSVC_MAJOR "${MSVC_VERSION}")
+    string(REGEX MATCH ".$" MSVC_MINOR "${MSVC_VERSION}")
+
+    set(${result_major} ${MSVC_MAJOR} PARENT_SCOPE)
+    set(${result_minor} ${MSVC_MINOR} PARENT_SCOPE)
 endfunction()
 
 
@@ -506,13 +480,10 @@ macro(_conan_detect_compiler)
 
             # Detect 'compiler' and 'compiler.version' settings.
             set(_MSVC "msvc")
-            _conan_detect_msvc_version(_MSVC_VERSION)
-            if("${_MSVC_VERSION}" STREQUAL "")
-                message(FATAL_ERROR "Conan: MSVC not recognized")
-            else()
-                set(_CONAN_SETTING_COMPILER ${_MSVC})
-                set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_VERSION})
-            endif()
+            _conan_detect_msvc_version(_MSVC_VERSION_MAJOR _MSVC_VERSION_MINOR)
+            set(_CONAN_SETTING_COMPILER ${_MSVC})
+            set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_VERSION_MAJOR})
+            set(_CONAN_SETTING_COMPILER_UPDATE ${_MSVC_VERSION_MINOR})
 
             # Detect 'compiler.runtime' and 'compiler.runtime_type' settings.
             _conan_detect_msvc_runtime(_MSVC_RUNTIME _MSVC_RUNTIME_TYPE ${ARGV})
@@ -627,7 +598,7 @@ endfunction()
 
 
 function(_collect_settings result)
-    set(ARGUMENTS_PROFILE_AUTO  arch build_type compiler compiler.version
+    set(ARGUMENTS_PROFILE_AUTO  arch build_type compiler compiler.version compiler.update
                                 compiler.runtime compiler.runtime_type 
                                 compiler.libcxx compiler.toolset
                                 compiler.cppstd compiler.update)
