@@ -1174,7 +1174,7 @@ function(conan_add_remotes)
     message(STATUS "Conan: Adding XLAB internal remote repository")
     execute_process(COMMAND conan remote add --index 2 xlab_internal https://artifactory.medicteam.io/artifactory/api/conan/xlab_internal_conanv2 RESULT_VARIABLE return_code ERROR_QUIET)
     if(NOT "${return_code}" STREQUAL "0")
-      message(STATUS "Conan: xlabinternalv2 already exists. Updating its index and URL...")
+      message(STATUS "Conan: xlab_internal already exists. Updating its index and URL...")
       execute_process(COMMAND conan remote update xlab_internal --index 2 --url https://artifactory.medicteam.io/artifactory/api/conan/xlab_internal_conanv2 RESULT_VARIABLE return_code ERROR_QUIET)
       if(NOT "${return_code}" STREQUAL "0")
         message(FATAL_ERROR "Conan remote update failed='${return_code}'.")
@@ -1194,7 +1194,7 @@ function(conan_add_remotes)
 
     if(DEFINED ENV{XLAB_INTERNAL_CONAN_USER} AND DEFINED ENV{XLAB_INTERNAL_CONAN_PASSWORD})
         message(STATUS "Conan: Logging to conan remote xlab_internal with user $ENV{XLAB_INTERNAL_CONAN_USER}...")
-        execute_process(COMMAND conan remote login xlabinternalv2 $ENV{XLAB_INTERNAL_CONAN_USER} -p $ENV{XLAB_INTERNAL_CONAN_PASSWORD}
+        execute_process(COMMAND conan remote login xlab_internal $ENV{XLAB_INTERNAL_CONAN_USER} -p $ENV{XLAB_INTERNAL_CONAN_PASSWORD}
                     RESULT_VARIABLE return_code)                                
         if(NOT "${return_code}" STREQUAL "0")                                       
             message(FATAL_ERROR "Conan remote login failed with code '${return_code}'")         
