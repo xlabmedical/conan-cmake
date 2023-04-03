@@ -1158,7 +1158,8 @@ macro(conan_check)
     endif()
 endmacro()
 
-function(conan_add_remotes SKIP_XLAB_INTERNAL)
+function(conan_add_remotes)
+    # If SKIP_XLAB_INTERNAL is set to ON, xlab_internal conan repo will be skipped.
     conan_check(VERSION 2.0.0 REQUIRED)
 
     message(STATUS "Conan: Adding medicdeps remote repository")
