@@ -479,11 +479,11 @@ macro(_conan_detect_compiler)
             # Detect 'msvc' compiler settings.
 
             # Detect 'compiler' and 'compiler.version' settings.
-            set(_MSVC "msvc")
-            _conan_detect_msvc_version(_MSVC_VERSION_MAJOR _MSVC_VERSION_MINOR)
-            set(_CONAN_SETTING_COMPILER ${_MSVC})
-            set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_VERSION_MAJOR})
-            set(_CONAN_SETTING_COMPILER_UPDATE ${_MSVC_VERSION_MINOR})
+            set(_MSVC_CLANG "clang")
+            _conan_detect_compiler(_MSVC_CLANG_VERSION_MAJOR _MSVC_CLANG_VERSION_MINOR)
+            set(_CONAN_SETTING_COMPILER ${_MSVC_CLANG})
+            set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_CLANG_VERSION_MAJOR})
+            set(_CONAN_SETTING_COMPILER_UPDATE ${_MSVC_CLANG_VERSION_MINOR})
 
             # Detect 'compiler.runtime' and 'compiler.runtime_type' settings.
             _conan_detect_msvc_runtime(_MSVC_RUNTIME _MSVC_RUNTIME_TYPE ${ARGV})
@@ -1201,7 +1201,7 @@ function(conan_add_remotes)
                 message(FATAL_ERROR "Conan remote login failed with code '${return_code}'")         
             endif()
         else()
-            message(STATUS "Conan: XLAB_INTERNAL_CONAN_USER and XLAB_INTERNAL_CONAN_PASSWORD environment variables not set. Skipping xlab_internal logging...")
+            message(FATAL_ERROR "Conan: XLAB_INTERNAL_CONAN_USER and XLAB_INTERNAL_CONAN_PASSWORD environment variables are not set.")
         endif()
     endif()
 
