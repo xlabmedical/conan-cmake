@@ -480,7 +480,10 @@ macro(_conan_detect_compiler)
 
             # Detect 'compiler' and 'compiler.version' settings.
             set(_MSVC_CLANG "clang")
-            _conan_detect_compiler(_MSVC_CLANG_VERSION_MAJOR _MSVC_CLANG_VERSION_MINOR)
+
+            string(REPLACE "." ";" VERSION_LIST ${CMAKE_${LANGUAGE}_COMPILER_VERSION})
+            list(GET VERSION_LIST 0 _MSVC_CLANG_VERSION_MAJOR)
+            list(GET VERSION_LIST 1 _MSVC_CLANG_VERSION_MINOR)
             set(_CONAN_SETTING_COMPILER ${_MSVC_CLANG})
             set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_CLANG_VERSION_MAJOR})
             set(_CONAN_SETTING_COMPILER_UPDATE ${_MSVC_CLANG_VERSION_MINOR})
