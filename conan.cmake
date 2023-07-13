@@ -445,39 +445,8 @@ macro(_conan_detect_compiler)
             _conan_detect_unix_libcxx(_LIBCXX)
             set(_CONAN_SETTING_COMPILER_LIBCXX ${_LIBCXX})
         endif ()
-    elseif ("${CMAKE_${LANGUAGE}_COMPILER_ID}" STREQUAL "MSVC"
-            OR ("${CMAKE_${LANGUAGE}_COMPILER_ID}" STREQUAL "Clang" 
-                AND "${CMAKE_${LANGUAGE}_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC" 
-                AND "${CMAKE_${LANGUAGE}_SIMULATE_ID}" STREQUAL "MSVC"))
-        # Using MSVC compilers.
-
-        if (NOT MODE_CONAN_V2)
-            # Detect 'Visual Studio' compiler settings.
-
-            # Detect 'compiler' and 'compiler.version' settings.
-            set(_VISUAL "Visual Studio")
-            _conan_detect_vs_version(_VISUAL_VERSION)
-            if("${_VISUAL_VERSION}" STREQUAL "")
-                message(FATAL_ERROR "Conan: Visual Studio not recognized")
-            else()
-                set(_CONAN_SETTING_COMPILER ${_VISUAL})
-                set(_CONAN_SETTING_COMPILER_VERSION ${_VISUAL_VERSION})
-            endif()
-
-            # Detect 'compiler.runtime' setting.
-            _conan_detect_vs_runtime(VS_RUNTIME ${ARGV})
-            message(STATUS "Conan: Detected VS runtime: ${VS_RUNTIME}")
-            set(_CONAN_SETTING_COMPILER_RUNTIME ${VS_RUNTIME})
-
-            # Detect 'compiler.toolset' setting.
-            if (CMAKE_GENERATOR_TOOLSET)
-                set(_CONAN_SETTING_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
-            elseif(CMAKE_VS_PLATFORM_TOOLSET AND (CMAKE_GENERATOR STREQUAL "Ninja"))
-                set(_CONAN_SETTING_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
-            endif()
-        else ()
-            # Detect 'msvc' compiler settings.
-
+    elseif (MSVC)
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             # Detect 'compiler' and 'compiler.version' settings.
             set(_MSVC_CLANG "clang")
 
@@ -487,37 +456,43 @@ macro(_conan_detect_compiler)
             set(_CONAN_SETTING_COMPILER ${_MSVC_CLANG})
             set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_CLANG_VERSION_MAJOR})
             set(_CONAN_SETTING_COMPILER_UPDATE ${_MSVC_CLANG_VERSION_MINOR})
+        else()
+            set(_MSVC "msvc")
+            _conan_detect_msvc_version(_MSVC_VERSION_MAJOR _MSVC_VERSION_MINOR)
+            set(_CONAN_SETTING_COMPILER ${_MSVC})
+            set(_CONAN_SETTING_COMPILER_VERSION ${_MSVC_VERSION_MAJOR})
+            set(_CONAN_SETTING_COMPILER_UPDATE ${_MSVC_VERSION_MINOR})
+        endif()        
 
-            # Detect 'compiler.runtime' and 'compiler.runtime_type' settings.
-            _conan_detect_msvc_runtime(_MSVC_RUNTIME _MSVC_RUNTIME_TYPE ${ARGV})
-            message(STATUS "Conan: Detected MSVC runtime: ${_MSVC_RUNTIME}")
-            set(_CONAN_SETTING_COMPILER_RUNTIME ${_MSVC_RUNTIME})
-            message(STATUS "Conan: Detected MSVC runtime_type: ${_MSVC_RUNTIME_TYPE}")
-            set(_CONAN_SETTING_COMPILER_RUNTIME_TYPE ${_MSVC_RUNTIME_TYPE})
+        # Detect 'compiler.runtime' and 'compiler.runtime_type' settings.
+        _conan_detect_msvc_runtime(_MSVC_RUNTIME _MSVC_RUNTIME_TYPE ${ARGV})
+        message(STATUS "Conan: Detected MSVC runtime: ${_MSVC_RUNTIME}")
+        set(_CONAN_SETTING_COMPILER_RUNTIME ${_MSVC_RUNTIME})
+        message(STATUS "Conan: Detected MSVC runtime_type: ${_MSVC_RUNTIME_TYPE}")
+        set(_CONAN_SETTING_COMPILER_RUNTIME_TYPE ${_MSVC_RUNTIME_TYPE})
 
-            # Detect 'compiler.toolset' setting.
-            set(_XP_TOOLSETS v110_xp v120_xp v140_xp v141_xp)
-            foreach(_XP_TOOLSET ${_XP_TOOLSETS})
-                if (CMAKE_GENERATOR_TOOLSET MATCHES ${_XP_TOOLSET})
-                    if (CMAKE_GENERATOR_TOOLSET)
-                        set(_CONAN_SETTING_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
-                    elseif(CMAKE_VS_PLATFORM_TOOLSET AND (CMAKE_GENERATOR STREQUAL "Ninja"))
-                        set(_CONAN_SETTING_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
-                    endif()
+        # Detect 'compiler.toolset' setting.
+        set(_XP_TOOLSETS v110_xp v120_xp v140_xp v141_xp)
+        foreach(_XP_TOOLSET ${_XP_TOOLSETS})
+            if (CMAKE_GENERATOR_TOOLSET MATCHES ${_XP_TOOLSET})
+                if (CMAKE_GENERATOR_TOOLSET)
+                    set(_CONAN_SETTING_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
+                elseif(CMAKE_VS_PLATFORM_TOOLSET AND (CMAKE_GENERATOR STREQUAL "Ninja"))
+                    set(_CONAN_SETTING_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
                 endif()
-            endforeach()
+            endif()
+        endforeach()
 
-            # Detect 'compiler.cppstd' setting.
-            if(CMAKE_CXX_STANDARD)
-                set(_CONAN_SETTING_COMPILER_CPPSTD ${CMAKE_CXX_STANDARD})
+        # Detect 'compiler.cppstd' setting.
+        if(CMAKE_CXX_STANDARD)
+            set(_CONAN_SETTING_COMPILER_CPPSTD ${CMAKE_CXX_STANDARD})
+        else()
+            if(MSVC_VERSION VERSION_LESS 1900)
+                # VS < 2015, specify C++98 standard by default.
+                set(_CONAN_SETTING_COMPILER_CPPSTD 98)
             else()
-                if(MSVC_VERSION VERSION_LESS 1900)
-                    # VS < 2015, specify C++98 standard by default.
-                    set(_CONAN_SETTING_COMPILER_CPPSTD 98)
-                else()
-                    # VS >= 2015, specify C++14 standard by default.
-                    set(_CONAN_SETTING_COMPILER_CPPSTD 14)
-                endif()
+                # VS >= 2015, specify C++14 standard by default.
+                set(_CONAN_SETTING_COMPILER_CPPSTD 14)
             endif()
         endif()
     else()
