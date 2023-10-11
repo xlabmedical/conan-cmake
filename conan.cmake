@@ -1137,6 +1137,8 @@ macro(conan_check)
 endmacro()
 
 function(ADD_CONAN_REMOTE)
+    conan_check(VERSION 2.0.0 REQUIRED)
+
     cmake_parse_arguments(CONAN_REMOTE "NO_FORCE;LOGIN" "URL;NAME;LOGIN_USERNAME;LOGIN_PASSWORD" "" ${ARGN})
     if(NOT CONAN_REMOTE_URL OR NOT CONAN_REMOTE_NAME)
         message(FATAL_ERROR "CONAN_ADD_REMOTE must be called with URL and NAME arguments!")
@@ -1146,14 +1148,16 @@ function(ADD_CONAN_REMOTE)
         message(FATAL_ERROR "CONAN_ADD_REMOTE with LOGIN option must be called with LOGIN_USERNAME and LOGIN_PASSWORD arguments!")
     endif()
 
-    conan_check(VERSION 2.0.0 REQUIRED)
-
+    if(CONAN_REMOTE_NO_FORCE)
+        set(FORCE_FLAG)
+    else()
+        set(FORCE_FLAG --force)
+    endif()
     execute_process(COMMAND
-        conan remote add 
-            $<$<NOT CONAN_REMOTE_NO_FORCE>:--force>
+            conan remote add 
             ${CONAN_REMOTE_NAME}
             ${CONAN_REMOTE_URL}
-            ERROR_QUIET
+            ${FORCE_FLAG}
         )
 
     if(CONAN_REMOTE_LOGIN)
@@ -1162,7 +1166,6 @@ function(ADD_CONAN_REMOTE)
             ${CONAN_REMOTE_NAME}
             ${CONAN_REMOTE_LOGIN_USERNAME}
             -p ${CONAN_REMOTE_LOGIN_PASSWORD}
-            ERROR_QUIET
         )
     endif()
 endfunction()
