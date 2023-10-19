@@ -1136,6 +1136,17 @@ macro(conan_check)
     endif()
 endmacro()
 
+function(VALIDATE_CONAN_VERSION)
+    if(WIN32)
+        set(PIP3COMMAND "pip")
+    else()
+        set(PIP3COMMAND "pip3")
+    endif()
+    message(STATUS "Conan 2.0.13 is required. Checking for correct version & upgrading...")
+    execute_process(COMMAND ${PIP3COMMAND} install --upgrade conan>=2.0.13)
+endfunction()
+
+
 function(ADD_CONAN_REMOTE)
     conan_check(VERSION 2.0.0 REQUIRED)
 
