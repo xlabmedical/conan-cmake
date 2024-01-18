@@ -598,14 +598,7 @@ function(conan_cmake_autodetect detected_settings)
     #   - If current Conan version is 2.0, then set MODE_CONAN_V2 TO ON.
     set(autodetectOneValueArgs CONAN_V2)
     cmake_parse_arguments(MODE "" "${autodetectOneValueArgs}" "" ${ARGV})
-    if (NOT MODE_CONAN_V2)
-        conan_version(CONAN_VERSION)
-        if (CONAN_VERSION VERSION_LESS "2.0.0")
-            set(MODE_CONAN_V2 OFF)
-        else ()
-            set(MODE_CONAN_V2 ON)
-        endif ()
-    endif ()
+    set(MODE_CONAN_V2 ON)
     _conan_detect_build_type(${ARGV})
     _conan_detect_arch(${ARGV})
     _conan_check_system_name()
@@ -1077,26 +1070,6 @@ macro(conan_cmake_run)
     endif()
 endmacro()
 
-function(conan_version result)
-    set(${result} "" PARENT_SCOPE)
-
-    if(NOT CONAN_CMD)
-        find_program(CONAN_CMD conan)
-        if(NOT CONAN_CMD AND CONAN_REQUIRED)
-            message(FATAL_ERROR "Conan executable not found! Please install conan.")
-        endif()
-    endif()
-
-    execute_process(COMMAND ${CONAN_CMD} --version
-                    RESULT_VARIABLE return_code
-                    OUTPUT_VARIABLE CONAN_VERSION_OUTPUT
-                    ERROR_VARIABLE CONAN_VERSION_OUTPUT)
-
-    string(REGEX MATCH ".*Conan version ([0-9]+\\.[0-9]+\\.[0-9]+)" FOO "${CONAN_VERSION_OUTPUT}")
-
-    set(${result} ${CMAKE_MATCH_1} PARENT_SCOPE)
-endfunction()
-
 macro(conan_check)
     # Checks conan availability in PATH
     # Arguments REQUIRED, DETECT_QUIET and VERSION are optional
@@ -1117,19 +1090,6 @@ macro(conan_check)
         message(STATUS "Conan: Found program ${CONAN_CMD}")
     endif()
 
-    conan_version(CONAN_DETECTED_VERSION)
-
-    if(NOT CONAN_DETECT_QUIET)
-        message(STATUS "Conan: Version found ${CONAN_DETECTED_VERSION}")
-    endif()
-
-    if(DEFINED CONAN_VERSION)
-        if(${CONAN_DETECTED_VERSION} VERSION_LESS ${CONAN_VERSION})
-            message(FATAL_ERROR "Conan outdated. Installed: ${CONAN_DETECTED_VERSION}, \
-                required: ${CONAN_VERSION}. Consider updating via 'pip \
-                install conan==${CONAN_VERSION}'.")
-        endif()
-    endif()
 endmacro()
 
 function(VALIDATE_CONAN_VERSION)
