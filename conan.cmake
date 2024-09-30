@@ -1093,13 +1093,51 @@ macro(conan_check)
 endmacro()
 
 function(VALIDATE_CONAN_VERSION)
-    if(WIN32)
-        set(PIP3COMMAND "pip")
+    find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    # Function to execute a Python command and capture its output
+    function(execute_python_command COMMAND OUTPUT_VAR)
+        execute_process(
+            COMMAND ${Python3_EXECUTABLE} -c "${COMMAND}"
+            OUTPUT_VARIABLE ${OUTPUT_VAR}
+            RESULT_VARIABLE _result
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(NOT _result EQUAL 0)
+            message(FATAL_ERROR "Failed to execute Python command: ${COMMAND}")
+        endif()
+    endfunction()
+
+    # Check if conan is installed
+    execute_python_command("import importlib.util; print(importlib.util.find_spec('conan') is not None)" CONAN_FOUND)
+
+    if(CONAN_FOUND STREQUAL "True")
+        # Check the conan version
+        execute_process(
+            COMMAND ${Python3_EXECUTABLE} -m conan --version
+            OUTPUT_VARIABLE CONAN_VERSION_OUTPUT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        
+        string(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+)" CONAN_VERSION ${CONAN_VERSION_OUTPUT})
+
+        if(CONAN_VERSION VERSION_LESS "2.0.0")
+            message(FATAL_ERROR "Conan version ${CONAN_VERSION} found, but version >= 2.0.0 is required.")
+        else()
+            message(STATUS "Conan version ${CONAN_VERSION} found.")
+        endif()
     else()
-        set(PIP3COMMAND "pip3")
+        message(STATUS "Conan not found. Installing conan...")
+        execute_process(
+            COMMAND ${Python3_EXECUTABLE} -m pip install --user conan
+            RESULT_VARIABLE PIP_INSTALL_RESULT
+        )
+        
+        if(NOT PIP_INSTALL_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to install conan using pip.")
+        endif()
+        
+        message(STATUS "Conan installed successfully.")
     endif()
-    message(STATUS "Conan 2.0.13 is required. Checking for correct version & upgrading...")
-    execute_process(COMMAND ${PIP3COMMAND} install --upgrade conan>=2.0.13)
 endfunction()
 
 
