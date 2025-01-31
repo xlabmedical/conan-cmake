@@ -1118,9 +1118,7 @@ endfunction()
 
 
 function(ADD_CONAN_REMOTE)
-    conan_check(VERSION 2.0.0 REQUIRED)
-
-    cmake_parse_arguments(CONAN_REMOTE "NO_FORCE;LOGIN;EXECUTABLE" "URL;NAME;LOGIN_USERNAME;LOGIN_PASSWORD" "" ${ARGN})
+    cmake_parse_arguments(CONAN_REMOTE "NO_FORCE;LOGIN" "URL;NAME;LOGIN_USERNAME;LOGIN_PASSWORD;EXECUTABLE" "" ${ARGN})
     if(NOT CONAN_REMOTE_URL OR NOT CONAN_REMOTE_NAME)
         message(FATAL_ERROR "CONAN_ADD_REMOTE must be called with URL and NAME arguments!")
     endif()
@@ -1156,9 +1154,6 @@ function(ADD_CONAN_REMOTE)
 endfunction()
 
 function(conan_add_remotes)
-    # If SKIP_XLAB_INTERNAL is set to ON, xlab_internal conan repo will be skipped.
-    conan_check(VERSION 2.0.0 REQUIRED)
-
     message(STATUS "Conan: Adding medicdeps remote repository")
     execute_process(COMMAND conan remote add --index 1 medicdeps https://artifactory.medicteam.io/artifactory/api/conan/medicdeps RESULT_VARIABLE return_code ERROR_QUIET)
     if(NOT "${return_code}" STREQUAL "0")
